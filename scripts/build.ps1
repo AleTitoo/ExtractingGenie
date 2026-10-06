@@ -23,6 +23,7 @@ if (-not $makensis) {
     }
 }
 if (-not $makensis) { throw 'makensis.exe is required to build the installer.' }
+New-Item -ItemType Directory -Force -Path 'dist' | Out-Null
 & $makensis installer.nsi
 if ($LASTEXITCODE -ne 0) { throw 'NSIS installer build failed.' }
 $installer = 'dist\GENIE-Report-Studio-Setup-1.0.2.exe'
