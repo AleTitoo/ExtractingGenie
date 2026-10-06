@@ -9,6 +9,13 @@ if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'PyInstaller build failed.' }
 $makensis = (Get-Command makensis.exe -ErrorAction SilentlyContinue).Source
 if (-not $makensis) {
+    $candidates = @()
+    if (${env:ProgramFiles(x86)}) { $candidates += Join-Path ${env:ProgramFiles(x86)} 'NSIS\makensis.exe' }
+    if ($env:ProgramFiles) { $candidates += Join-Path $env:ProgramFiles 'NSIS\makensis.exe' }
+    if ($env:ChocolateyInstall) { $candidates += Join-Path $env:ChocolateyInstall 'bin\makensis.exe' }
+    $makensis = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+}
+if (-not $makensis) {
     $cache = Join-Path $env:LOCALAPPDATA 'electron-builder\Cache'
     if (Test-Path $cache) {
         $makensis = (Get-ChildItem -LiteralPath $cache -Recurse -Filter makensis.exe -File -ErrorAction SilentlyContinue |
