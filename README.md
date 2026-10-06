@@ -1,5 +1,7 @@
 # GENIE Report Studio
 
+Project repository: https://github.com/AleTitoo/ExtractingGenie
+
 GENIE Report Studio is a local Windows application for importing selectable-text GENIE PDFs and extracting the interference-corrected weighted mean activity table. Reports stay on the computer.
 
 ## Accuracy boundaries
