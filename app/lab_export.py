@@ -7,7 +7,7 @@ import csv
 import io
 import re
 from pathlib import Path
-from core import selected, atomic_write
+from core import selected, atomic_write, relative_uncertainty, review_threshold
 
 NUCLIDES = ['Pt-189','Re-181','Os-183','Ir-184','Ir-185','Ir-186','Ir-187',
             'Ir-188','Ir-194','Pt-188','Pt-191','Au-191','Au-192','Au-198','Au-200']
@@ -21,11 +21,12 @@ def safe_text(value):
     value = str(value or '')
     return "'"+value if value.startswith(('=','+','-','@')) else value
 
-def build_lab_rows(reports, threshold='0.7', include_below=False):
+def build_lab_rows(reports, threshold='0.7', include_below=False, uncertainty_threshold='10'):
     if not reports:
         raise ValueError('Select at least one report.')
     # Validate the filter even when the report contains no qualifying rows.
     selected([],threshold,include_below)
+    uncertainty_cutoff = review_threshold(uncertainty_threshold)
     units = {r['units'] for r in reports}
     if len(units) != 1:
         raise ValueError('Reports have different activity units. Export each unit group separately.')
@@ -68,6 +69,11 @@ def build_lab_rows(reports, threshold='0.7', include_below=False):
                 continue
             index = 8+5*isotopes.index(r['nuclide'])
             row[index:index+2] = [r['activity'],r['uncertainty']]
+            relative = relative_uncertainty(r.get('activity'),r.get('uncertainty'))
+            if relative is None:
+                flags.append(f"{r['nuclide']}: relative uncertainty cannot be assessed")
+            elif relative > uncertainty_cutoff:
+                flags.append(f"{r['nuclide']}: relative uncertainty {format(relative,'.3f')}% > {uncertainty_threshold}%")
             if r['flags']:
                 flags.append(f"{r['nuclide']}: {r['flags']}")
         notes = ['Time of counting = acquisition start; Time (s) = live time',
@@ -87,8 +93,8 @@ def build_lab_rows(reports, threshold='0.7', include_below=False):
         result.append(row)
     return result
 
-def export_lab_csv(reports,target,threshold='0.7',include_below=False):
+def export_lab_csv(reports,target,threshold='0.7',include_below=False,uncertainty_threshold='10'):
     stream = io.StringIO(newline='')
-    csv.writer(stream).writerows(build_lab_rows(reports,threshold,include_below))
+    csv.writer(stream).writerows(build_lab_rows(reports,threshold,include_below,uncertainty_threshold))
     atomic_write(target,stream.getvalue().encode('utf-8-sig'))
     return len(reports)

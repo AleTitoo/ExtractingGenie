@@ -10,7 +10,7 @@ class ServerTests(unittest.TestCase):
         url=f'http://127.0.0.1:{service.server_port}'
         try:
             with urllib.request.urlopen(url) as response:
-                self.assertIn(b'GENIE Report Library',response.read())
+                self.assertIn(b'GENIE Report Studio',response.read())
             def request(path,data,token=server.TOKEN):
                 return urllib.request.urlopen(urllib.request.Request(url+path,
                     data=json.dumps(data).encode(),headers={'X-Library-Token':token,'Content-Type':'application/json'}))

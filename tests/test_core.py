@@ -2,7 +2,7 @@ import unittest
 import tempfile
 import csv
 from pathlib import Path
-from core import parse_pages, selected, export_csv
+from core import parse_pages, selected, export_csv, relative_uncertainty, review_threshold
 
 HEADER = '''***** I N T E R F E R E N C E C O R R E C T E D R E P O R T *****
 Nuclide Wt mean Wt mean
@@ -18,6 +18,11 @@ Pt-197m1 @ 0.926 1.2932844E+03 3.4136603E+02
 FOOTER = 'Errors quoted at 1.000 sigma'
 
 class ParserTests(unittest.TestCase):
+    def test_uncertainty_threshold_rejects_non_finite_or_negative_values(self):
+        for value in ('NaN', 'Infinity', '-0.1'):
+            with self.assertRaises(ValueError):
+                review_threshold(value)
+
     def test_blank_metadata_does_not_capture_next_line(self):
         report = parse_pages(['Sample Identification :\nSample Type :\n'+HEADER+BODY+FOOTER], 'sample.pdf')
         self.assertEqual(report['sample_id'], '')
@@ -67,6 +72,19 @@ class ParserTests(unittest.TestCase):
                 rows = list(csv.DictReader(stream))
             self.assertEqual(rows[0]['Weighted mean activity'],'')
             self.assertEqual(rows[2]['Weighted mean activity'],'2.0022751E+03')
+
+    def test_relative_uncertainty(self):
+        self.assertEqual(relative_uncertainty('100','10'),10)
+        self.assertIsNone(relative_uncertainty('0','1'))
+        self.assertIsNone(relative_uncertainty(None,'1'))
+
+    def test_interference_corrected_line_rows(self):
+        page='''Interference Corrected Activity Report\n***** N U C L I D E I D E N T I F I C A T I O N R E P O R T *****\nPt-189 0.977 94.34* 6.50 1.868354E+03 5.502715E+02\n113.82* @ 2.50 2.350085E+03 6.993337E+02\n130.00 @ 0.11\n* = Energy line found in the spectrum.\n'''+HEADER+BODY+FOOTER
+        report=parse_pages([page],'sample.pdf')
+        self.assertEqual(len(report['line_rows']),3)
+        self.assertEqual(report['line_rows'][0]['status'],'Used in weighted mean')
+        self.assertEqual(report['line_rows'][1]['status'],'Not used in weighted mean')
+        self.assertEqual(report['line_rows'][2]['status'],'Not found in spectrum')
 
 if __name__ == '__main__':
     unittest.main()

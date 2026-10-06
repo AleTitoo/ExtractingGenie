@@ -1,10 +1,14 @@
 """Local-only browser interface; no remote services."""
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import base64, json, os, re, secrets, sys, tempfile, threading, webbrowser
+import base64, json, os, re, secrets, sys, tempfile, threading, time, webbrowser
 import subprocess
-from core import import_report, load_library, export_csv
+from urllib.parse import parse_qs, urlparse
+from core import import_report, load_library, export_csv, upgrade_library
 from lab_export import export_lab_csv
+from evidence import render_png
+from update import check_for_update, download_verified_update, schedule_install
+from version import APP_VERSION
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
 if getattr(sys, 'frozen', False):
     default_data = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'GENIE Report Studio'
@@ -13,6 +17,7 @@ else:
 DATA_ROOT = Path(os.environ.get('GENIE_DATA_DIR', default_data))
 LIBRARY = DATA_ROOT / 'library'
 LIBRARY.mkdir(parents=True, exist_ok=True)
+LIBRARY_UPGRADE_ERRORS = upgrade_library(LIBRARY)
 TOKEN = secrets.token_urlsafe(32)
 LOCK = threading.Lock()
 
@@ -29,11 +34,25 @@ class Handler(BaseHTTPRequestHandler):
         return self.headers.get('Host') == f'127.0.0.1:{self.server.server_port}'
     def do_GET(self):
         if not self.valid_host(): return self.send({'error':'Invalid host'},status=403)
-        if self.path == '/': return self.send((ROOT/'interface.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
-        match=re.fullmatch(r'/pdf/([a-f0-9]{64})\?token=([A-Za-z0-9_-]+)',self.path)
-        if match and secrets.compare_digest(match[2],TOKEN):
+        parsed = urlparse(self.path)
+        query = parse_qs(parsed.query)
+        request_token = query.get('token', [''])[0]
+        if parsed.path == '/': return self.send((ROOT/'interface.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
+        match=re.fullmatch(r'/pdf/([a-f0-9]{64})',parsed.path)
+        if match and secrets.compare_digest(request_token,TOKEN):
             path=LIBRARY/(match[1]+'.pdf')
             if path.exists(): return self.send(path.read_bytes(),'application/pdf')
+        match=re.fullmatch(r'/evidence/([a-f0-9]{64})/(summary|line)/(\d+)\.png',parsed.path)
+        if match and secrets.compare_digest(request_token,TOKEN):
+            digest, kind, index = match.groups()
+            record=LIBRARY/(digest+'.json')
+            pdf=LIBRARY/(digest+'.pdf')
+            if record.exists() and pdf.exists():
+                report=json.loads(record.read_text(encoding='utf-8'))
+                values=report['rows'] if kind=='summary' else report.get('line_rows',[])
+                if int(index)<len(values):
+                    row=values[int(index)]
+                    return self.send(render_png(pdf,row['page'],row.get('bbox')),'image/png')
         self.send({'error':'Not found'},status=404)
     def do_POST(self):
         if not self.valid_host() or not secrets.compare_digest(self.headers.get('X-Library-Token',''),TOKEN): return self.send({'error':'Invalid token'},status=403)
@@ -43,6 +62,14 @@ class Handler(BaseHTTPRequestHandler):
             data=json.loads(self.rfile.read(size))
             with LOCK:
                 if self.path=='/api/list': return self.send(load_library(LIBRARY))
+                if self.path=='/api/info': return self.send({'version':APP_VERSION,'library_upgrade_errors':LIBRARY_UPGRADE_ERRORS})
+                if self.path=='/api/update/check': return self.send(check_for_update())
+                if self.path=='/api/update/install':
+                    info=check_for_update()
+                    installer=download_verified_update(info,DATA_ROOT/'updates')
+                    schedule_install(installer)
+                    threading.Thread(target=lambda:(time.sleep(1.5),os._exit(0)),daemon=True).start()
+                    return self.send({'status':'Installing verified update…'})
                 if self.path=='/api/import':
                     name=str(data['name']).replace('\\','/').split('/')[-1]
                     if not name.lower().endswith('.pdf'): raise ValueError('Select a PDF report.')
@@ -58,9 +85,9 @@ class Handler(BaseHTTPRequestHandler):
                     with tempfile.TemporaryDirectory() as temp:
                         target=Path(temp)/'results.csv'
                         if self.path=='/api/export-lab':
-                            export_lab_csv(reports,target,str(data['threshold']),bool(data['all']))
+                            export_lab_csv(reports,target,str(data['threshold']),bool(data['all']),str(data.get('uncertainty_threshold','10')))
                         else:
-                            export_csv(reports,target,LIBRARY,str(data['threshold']),bool(data['all']))
+                            export_csv(reports,target,LIBRARY,str(data['threshold']),bool(data['all']),str(data.get('uncertainty_threshold','10')))
                         return self.send(target.read_bytes(),'text/csv; charset=utf-8')
                 return self.send({'error':'Not found'},status=404)
         except Exception as exc: self.send({'error':str(exc)},status=400)
