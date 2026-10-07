@@ -61,6 +61,8 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == '/': return self.send((ROOT/'interface.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
         if parsed.path == '/assets/platinum-189.png':
             return self.send((ASSET_ROOT/'platinum-189.png').read_bytes(),'image/png')
+        if parsed.path == '/assets/platinum-189-animated.js':
+            return self.send((ASSET_ROOT/'platinum-189-animated.js').read_bytes(),'application/javascript; charset=utf-8')
         match=re.fullmatch(r'/pdf/([a-f0-9]{64})',parsed.path)
         if match and secrets.compare_digest(request_token,TOKEN):
             path=LIBRARY/(match[1]+'.pdf')

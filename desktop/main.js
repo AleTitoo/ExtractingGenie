@@ -41,7 +41,7 @@ app.whenReady().then(() => {
   fs.mkdirSync(dataRoot, { recursive: true });
   logFile = path.join(app.getPath('userData'), 'app.log');
   // Refresh legacy shortcut metadata once, preserving the shortcut paths used by pins.
-  const marker = path.join(dataRoot, 'native-shortcuts-v1.json');
+  const marker = path.join(dataRoot, 'native-shortcuts-v2.json');
   if (app.isPackaged && !process.env.GENIE_SKIP_SHORTCUT_MIGRATION && !fs.existsSync(marker)) {
     const shortcuts = [
       path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Platinum-189', 'Platinum-189.lnk'),
@@ -52,7 +52,7 @@ app.whenReady().then(() => {
       if (!fs.existsSync(shortcut)) continue;
       migrated = shell.writeShortcutLink(shortcut, 'update', {
         target: process.execPath, cwd: path.dirname(process.execPath),
-        icon: path.join(process.resourcesPath, 'platinum-189.ico'), iconIndex: 0,
+        icon: path.join(process.resourcesPath, 'platinum-189-v2.ico'), iconIndex: 0,
         appUserModelId: APP_ID, description: 'Platinum-189'
       }) && migrated;
     }
@@ -80,7 +80,7 @@ app.whenReady().then(() => {
     opened = true;
     const window = new BrowserWindow({
       title: 'Platinum-189',
-      icon: path.join(process.resourcesPath, 'platinum-189.ico'),
+      icon: path.join(process.resourcesPath, 'platinum-189-v2.ico'),
       width: 1240,
       height: 820,
       minWidth: 900,
@@ -90,7 +90,7 @@ app.whenReady().then(() => {
       webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false }
     });
     mainWindow = window;
-    window.setAppDetails({ appId: APP_ID, appIconPath: path.join(process.resourcesPath, 'platinum-189.ico'), appIconIndex: 0, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: 'Platinum-189' });
+    window.setAppDetails({ appId: APP_ID, appIconPath: path.join(process.resourcesPath, 'platinum-189-v2.ico'), appIconIndex: 0, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: 'Platinum-189' });
     window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     window.webContents.on('will-navigate', (event, destination) => { if (!destination.startsWith(url + '/')) event.preventDefault(); });
     window.webContents.on('did-finish-load', async () => {

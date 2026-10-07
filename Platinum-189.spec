@@ -5,6 +5,7 @@ datas = collect_data_files('pdfminer') + [
     ('app/interface.html', '.'),
     ('version.txt', '.'),
     ('assets/platinum-189.png', 'assets'),
+    ('assets/platinum-189-animated.js', 'assets'),
 ]
 
 a = Analysis(

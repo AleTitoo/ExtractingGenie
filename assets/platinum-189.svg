@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="1024" height="1024" role="img" aria-label="Platinum-189 icon with 17 electrons on an inner shell and one electron on an outer shell">
+<defs>
+<linearGradient id="blue" x1="28" y1="220" x2="220" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#2563eb"/><stop offset=".55" stop-color="#159be9"/><stop offset="1" stop-color="#52d9ee"/></linearGradient>
+<radialGradient id="nucleus"><stop stop-color="#73e4f3"/><stop offset="1" stop-color="#229de4"/></radialGradient>
+</defs>
+<g fill="none" stroke="url(#blue)" stroke-width="2.3">
+<circle cx="128" cy="128" r="77"/>
+<circle cx="128" cy="128" r="98"/>
+</g>
+<g fill="url(#blue)">
+<circle cx="128.00" cy="51.00" r="5.5"/>
+<circle cx="155.82" cy="56.20" r="5.5"/>
+<circle cx="179.87" cy="71.10" r="5.5"/>
+<circle cx="196.93" cy="93.68" r="5.5"/>
+<circle cx="204.67" cy="120.90" r="5.5"/>
+<circle cx="202.06" cy="149.07" r="5.5"/>
+<circle cx="189.45" cy="174.40" r="5.5"/>
+<circle cx="168.54" cy="193.47" r="5.5"/>
+<circle cx="142.15" cy="203.69" r="5.5"/>
+<circle cx="113.85" cy="203.69" r="5.5"/>
+<circle cx="87.46" cy="193.47" r="5.5"/>
+<circle cx="66.55" cy="174.40" r="5.5"/>
+<circle cx="53.94" cy="149.07" r="5.5"/>
+<circle cx="51.33" cy="120.90" r="5.5"/>
+<circle cx="59.07" cy="93.68" r="5.5"/>
+<circle cx="76.13" cy="71.10" r="5.5"/>
+<circle cx="100.18" cy="56.20" r="5.5"/>
+</g>
+<circle cx="204" cy="66" r="9" fill="#70e3f3"/>
+<g opacity=".2" fill="url(#nucleus)" transform="translate(128 128) scale(.8) translate(-128 -112)">
+<circle cx="108" cy="76" r="11.5"/><circle cx="128" cy="76" r="11.5"/><circle cx="148" cy="76" r="11.5"/>
+<circle cx="98" cy="94" r="11.5"/><circle cx="118" cy="94" r="11.5"/><circle cx="138" cy="94" r="11.5"/><circle cx="158" cy="94" r="11.5"/>
+<circle cx="88" cy="112" r="11.5"/><circle cx="108" cy="112" r="11.5"/><circle cx="128" cy="112" r="11.5"/><circle cx="148" cy="112" r="11.5"/><circle cx="168" cy="112" r="11.5"/>
+<circle cx="98" cy="130" r="11.5"/><circle cx="118" cy="130" r="11.5"/><circle cx="138" cy="130" r="11.5"/><circle cx="158" cy="130" r="11.5"/>
+<circle cx="108" cy="148" r="11.5"/><circle cx="128" cy="148" r="11.5"/><circle cx="148" cy="148" r="11.5"/>
+</g>
+<text x="128" y="137" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif" font-weight="600" font-size="25" fill="#69d7ef">Pt<tspan font-size="12" baseline-shift="super" dx="2">189</tspan></text>
+</svg>

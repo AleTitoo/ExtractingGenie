@@ -10,6 +10,9 @@ $env:PYTHONPATH = (Join-Path $root 'app')
 if ($LASTEXITCODE -ne 0) { throw 'Version synchronization failed.' }
 & $python scripts\make_icon.py
 if ($LASTEXITCODE -ne 0) { throw 'Icon generation failed.' }
+node --check assets/platinum-189-animated.js
+if ($LASTEXITCODE -ne 0) { throw 'Icon animation syntax check failed.' }
+Copy-Item -LiteralPath 'assets\platinum-189-animated.js' -Destination 'site\platinum-189-animated.js' -Force
 & $python -m unittest discover -s tests
 if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
 & $python -m PyInstaller --clean --noconfirm Platinum-189.spec --distpath backend-dist

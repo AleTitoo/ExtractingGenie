@@ -49,9 +49,9 @@ Section "Install"
   RMDir "$SMPROGRAMS\GENIE Report Studio"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GENIE Report Studio"
   ReadRegDWORD $0 HKCU "Software\Platinum-189" "NativeShortcutVersion"
-  IntCmp $0 1 preserveStart migrateStart preserveStart
+  IntCmp $0 2 preserveStart migrateStart preserveStart
   migrateStart:
-  CreateShortcut "$SMPROGRAMS\Platinum-189\Platinum-189.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189.ico" 0
+  CreateShortcut "$SMPROGRAMS\Platinum-189\Platinum-189.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-v2.ico" 0
   Goto skipStartShortcut
   preserveStart:
   IfFileExists "$SMPROGRAMS\Platinum-189\Platinum-189.lnk" skipStartShortcut 0
@@ -60,16 +60,16 @@ Section "Install"
   IfFileExists "$SMPROGRAMS\Platinum-189\Uninstall.lnk" skipUninstallShortcut 0
   CreateShortcut "$SMPROGRAMS\Platinum-189\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   skipUninstallShortcut:
-  IntCmp $0 1 preserveDesktop migrateDesktop preserveDesktop
+  IntCmp $0 2 preserveDesktop migrateDesktop preserveDesktop
   migrateDesktop:
   IfFileExists "$DESKTOP\Platinum-189.lnk" 0 preserveDesktop
-  CreateShortcut "$DESKTOP\Platinum-189.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189.ico" 0
+  CreateShortcut "$DESKTOP\Platinum-189.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-v2.ico" 0
   Goto skipDesktopShortcut
   preserveDesktop:
   IfFileExists "$DESKTOP\Platinum-189.lnk" skipDesktopShortcut 0
   CreateShortcut "$DESKTOP\Platinum-189.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\Platinum-189.exe" 0
   skipDesktopShortcut:
-  WriteRegDWORD HKCU "Software\Platinum-189" "NativeShortcutVersion" 1
+  WriteRegDWORD HKCU "Software\Platinum-189" "NativeShortcutVersion" 2
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189" "DisplayName" "Platinum-189"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189" "DisplayVersion" "${APP_VERSION}"
