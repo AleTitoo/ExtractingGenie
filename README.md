@@ -6,7 +6,9 @@ Download website: https://platinum-189.vercel.app/
 
 Platinum-189 is a local Windows application for importing selectable-text GENIE PDFs and extracting the interference-corrected weighted mean activity table. Reports stay on the computer.
 
-Version 1.0.6 introduces the approved two-shell Pt-189 desktop icon and animated branding in the application and download website. Inner electrons move slower than the outer electron; shell jumps smoothly change speed, glow red only during travel, and collisions trigger brief relocation fades. The app header no longer contains the colored band or the two introductory text lines. The extraction and evidence workflow is unchanged.
+Version 1.0.7 retains the approved two-shell Pt-189 icon and animation, the larger website icon, and the simplified app header. Its installer closes the existing app and private report service before replacing files. Extraction and evidence handling are unchanged.
+
+**Known unfinished work:** the full in-app install-and-restart sequence has not passed verification. Automatic installation is paused in this release; update checks remain available and the update button opens the download website. Close Platinum-189 and run the downloaded installer manually. The independent updater handoff and visible automatic relaunch are deferred to the next development session.
 
 Version 1.0.5 renamed the application to Platinum-189 in honor of the experiment that inspired it. The library migrates with byte-for-byte verification; the previous copy remains available as a backup. Compatibility downloads and a small launcher bridge keep older installations and their update paths working.
 

@@ -91,7 +91,10 @@ app.whenReady().then(() => {
     });
     mainWindow = window;
     window.setAppDetails({ appId: APP_ID, appIconPath: path.join(process.resourcesPath, 'platinum-189-v2.ico'), appIconIndex: 0, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: 'Platinum-189' });
-    window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+    window.webContents.setWindowOpenHandler(({ url }) => {
+      if (url === 'https://platinum-189.vercel.app/') shell.openExternal(url);
+      return { action: 'deny' };
+    });
     window.webContents.on('will-navigate', (event, destination) => { if (!destination.startsWith(url + '/')) event.preventDefault(); });
     window.webContents.on('did-finish-load', async () => {
       if (!process.env.GENIE_SMOKE_FILE) return;

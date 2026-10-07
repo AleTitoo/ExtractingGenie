@@ -30,6 +30,17 @@ Section "Install"
   FileOpen $1 "$INSTDIR\.installing" w
   FileWrite $1 "Installation in progress"
   FileClose $1
+  InitPluginsDir
+  File /oname=$PLUGINSDIR\close-installed-app.ps1 "scripts\close-installed-app.ps1"
+  nsExec::ExecToStack '"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -ExecutionPolicy Bypass -File "$PLUGINSDIR\close-installed-app.ps1" -InstallDir "$INSTDIR"'
+  Pop $0
+  Pop $1
+  StrCmp $0 "0" appClosed
+  Delete "$INSTDIR\.installing"
+  MessageBox MB_OK|MB_ICONSTOP "Platinum-189 could not close. Close the app and run the installer again."
+  SetErrorLevel 1
+  Abort
+  appClosed:
   File /r "dist\win-unpacked\*.*"
   ; Older updater helpers relaunch this historical path after installation.
   IfFileExists "$LOCALAPPDATA\Programs\GENIE Report Studio\GENIE-Report-Studio.exe" 0 skipLegacyBridge

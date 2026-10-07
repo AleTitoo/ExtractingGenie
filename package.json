@@ -1,6 +1,6 @@
 {
   "name": "platinum-189",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Local, traceable extraction of weighted activities from GENIE reports",
   "main": "desktop/main.js",
   "author": "Alexandre Pereira",

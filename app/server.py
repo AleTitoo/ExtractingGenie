@@ -102,12 +102,7 @@ class Handler(BaseHTTPRequestHandler):
                         threading.Thread(target=download_update,args=(info,),daemon=True).start()
                     return self.send(public_update_state())
                 if self.path=='/api/update/install':
-                    with UPDATE_LOCK: installer=UPDATE_STATE.get('installer')
-                    if not installer: raise ValueError('Download and verify the update first.')
-                    schedule_install(installer)
-                    update_state(stage='installing',message='Restarting to install…')
-                    threading.Thread(target=lambda:(time.sleep(1.5),os._exit(0)),daemon=True).start()
-                    return self.send(public_update_state())
+                    raise ValueError('Automatic installation is paused in v1.0.7. Download the installer from https://platinum-189.vercel.app/, close the app, then run it.')
                 if self.path=='/api/import':
                     name=str(data['name']).replace('\\','/').split('/')[-1]
                     if not name.lower().endswith('.pdf'): raise ValueError('Select a PDF report.')
