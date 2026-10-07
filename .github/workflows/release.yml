@@ -40,5 +40,7 @@ jobs:
             dist/Platinum-189-Setup-[0-9]*.exe.sha256
             dist/Platinum-189-Setup-latest.exe
             dist/Platinum-189-Setup-latest.exe.sha256
+            dist/Platinum-189-Offline-Setup-*.exe
+            dist/Platinum-189-Offline-Setup-*.exe.sha256
             dist/GENIE-Report-Studio-Setup-*.exe
             dist/GENIE-Report-Studio-Setup-*.exe.sha256

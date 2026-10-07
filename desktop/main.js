@@ -1,20 +1,28 @@
-const { app, BrowserWindow, dialog, shell } = require('electron');
+const { app, BrowserWindow, dialog, shell, Menu } = require('electron');
 const { spawn, spawnSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { migrateLibrary } = require('./migration');
 const { launchUpdate } = require('./updater');
+const { allowOfflineRequest } = require('./offline');
 
 let backend;
 let logFile;
 let mainWindow;
 let updatePoll;
 let installing = false;
-const APP_ID = 'com.aletitoo.platinum189';
+const OFFLINE = fs.existsSync(path.join(process.resourcesPath, 'offline-edition.json'));
+const APP_NAME = OFFLINE ? 'Platinum-189 Offline' : 'Platinum-189';
+const APP_ID = OFFLINE ? 'com.aletitoo.platinum189.offline' : 'com.aletitoo.platinum189';
+if (OFFLINE) {
+  for (const flag of ['disable-background-networking', 'disable-component-update', 'disable-domain-reliability']) app.commandLine.appendSwitch(flag);
+}
 app.setAppUserModelId(APP_ID);
-app.setName('Platinum-189');
-const dataRoot = process.env.PLATINUM_DATA_DIR || process.env.GENIE_DATA_DIR || path.join(process.env.LOCALAPPDATA || os.homedir(), 'Platinum-189');
+app.setName(APP_NAME);
+const dataRoot = OFFLINE
+  ? process.env.PLATINUM_OFFLINE_DATA_DIR || path.join(process.env.LOCALAPPDATA || os.homedir(), APP_NAME)
+  : process.env.PLATINUM_DATA_DIR || process.env.GENIE_DATA_DIR || path.join(process.env.LOCALAPPDATA || os.homedir(), APP_NAME);
 app.setPath('userData', dataRoot);
 if (!app.requestSingleInstanceLock()) app.quit();
 app.on('second-instance', () => {
@@ -38,14 +46,15 @@ function stopBackend() {
 }
 
 app.whenReady().then(() => {
-  if (!process.env.PLATINUM_DATA_DIR && !process.env.GENIE_DATA_DIR) {
+  if (OFFLINE) Menu.setApplicationMenu(null);
+  if (!OFFLINE && !process.env.PLATINUM_DATA_DIR && !process.env.GENIE_DATA_DIR) {
     migrateLibrary(path.join(process.env.LOCALAPPDATA || os.homedir(), 'GENIE Report Studio'), dataRoot);
   }
   fs.mkdirSync(dataRoot, { recursive: true });
   logFile = path.join(app.getPath('userData'), 'app.log');
   // Refresh legacy shortcut metadata once, preserving the shortcut paths used by pins.
   const marker = path.join(dataRoot, 'native-shortcuts-v2.json');
-  if (app.isPackaged && !process.env.GENIE_SKIP_SHORTCUT_MIGRATION && !fs.existsSync(marker)) {
+  if (!OFFLINE && app.isPackaged && !process.env.GENIE_SKIP_SHORTCUT_MIGRATION && !fs.existsSync(marker)) {
     const shortcuts = [
       path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Platinum-189', 'Platinum-189.lnk'),
       path.join(app.getPath('desktop'), 'Platinum-189.lnk')
@@ -79,7 +88,7 @@ app.whenReady().then(() => {
 
   const updateRequest = path.join(dataRoot, 'update-install-request.json');
   updatePoll = setInterval(async () => {
-    if (installing || !fs.existsSync(updateRequest)) return;
+    if (OFFLINE || installing || !fs.existsSync(updateRequest)) return;
     installing = true;
     try {
       const request = JSON.parse(fs.readFileSync(updateRequest, 'utf8'));
@@ -104,7 +113,7 @@ app.whenReady().then(() => {
     if (opened) return;
     opened = true;
     const window = new BrowserWindow({
-      title: 'Platinum-189',
+      title: APP_NAME,
       icon: path.join(process.resourcesPath, 'platinum-189-v2.ico'),
       width: 1240,
       height: 820,
@@ -114,21 +123,26 @@ app.whenReady().then(() => {
       autoHideMenuBar: true,
       webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false }
     });
+    if (OFFLINE) {
+      window.webContents.session.webRequest.onBeforeRequest((details, callback) => {
+        callback({ cancel: !allowOfflineRequest(details.url, url) });
+      });
+    }
     mainWindow = window;
-    window.setAppDetails({ appId: APP_ID, appIconPath: path.join(process.resourcesPath, 'platinum-189-v2.ico'), appIconIndex: 0, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: 'Platinum-189' });
+    window.setAppDetails({ appId: APP_ID, appIconPath: path.join(process.resourcesPath, 'platinum-189-v2.ico'), appIconIndex: 0, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: APP_NAME });
     window.webContents.setWindowOpenHandler(({ url }) => {
-      if (url === 'https://platinum-189.vercel.app/') shell.openExternal(url);
+      if (!OFFLINE && url === 'https://platinum-189.vercel.app/') shell.openExternal(url);
       return { action: 'deny' };
     });
     window.webContents.on('will-navigate', (event, destination) => { if (!destination.startsWith(url + '/')) event.preventDefault(); });
     window.webContents.on('did-finish-load', async () => {
       if (!process.env.GENIE_SMOKE_FILE) return;
       try {
-        const result = await window.webContents.executeJavaScript(`(async()=>{await reload();const info=await(await api('info')).json();$('version').textContent='Version '+info.version;return {version:info.version,reports:reports.length,title:document.title}})()`);
+        const result = await window.webContents.executeJavaScript(`(async()=>{await reload();const info=await(await api('info')).json();$('version').textContent='Version '+info.version;let externalBlocked=null,updateBlocked=null;if(offline){try{await fetch('https://example.invalid/');externalBlocked=false}catch{externalBlocked=true}try{await api('update/check');updateBlocked=false}catch{updateBlocked=true}}return {version:info.version,reports:reports.length,title:document.title,offline:info.offline,externalBlocked,updateBlocked}})()`);
         await new Promise(resolve => setTimeout(resolve, 250));
         const screenshot = await window.webContents.capturePage();
         fs.writeFileSync(process.env.GENIE_SMOKE_FILE + '.png', screenshot.toPNG());
-        const shortcut = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Platinum-189', 'Platinum-189.lnk');
+        const shortcut = path.join(app.getPath('appData'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', APP_NAME, APP_NAME + '.lnk');
         const shortcutDetails = !process.env.GENIE_SKIP_SHORTCUT_MIGRATION && fs.existsSync(shortcut) ? shell.readShortcutLink(shortcut) : null;
         fs.writeFileSync(process.env.GENIE_SMOKE_FILE, JSON.stringify({ ...result, appId: APP_ID, executable: process.execPath, dataRoot, backend: executable, shortcutDetails }));
         app.quit();

@@ -21,7 +21,7 @@ if ($LASTEXITCODE -ne 0) { throw 'PyInstaller build failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Compatibility launcher build failed.' }
 node --check desktop/main.js
 if ($LASTEXITCODE -ne 0) { throw 'Desktop shell syntax check failed.' }
-node --test tests/migration.test.js tests/updater.test.js
+node --test tests/migration.test.js tests/updater.test.js tests/offline.test.js
 if ($LASTEXITCODE -ne 0) { throw 'Library migration tests failed.' }
 $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
 node node_modules/electron-builder/cli.js --win --dir --publish never
@@ -56,3 +56,6 @@ Copy-Item -LiteralPath $installer -Destination (Join-Path 'dist' $legacyName) -F
 Set-Content -LiteralPath (Join-Path 'dist' ($legacyName + '.sha256')) -Value "$hash  $legacyName" -Encoding ascii
 Copy-Item -LiteralPath $installer -Destination 'dist\GENIE-Report-Studio-Setup-latest.exe' -Force
 Set-Content -LiteralPath 'dist\GENIE-Report-Studio-Setup-latest.exe.sha256' -Value "$hash  GENIE-Report-Studio-Setup-latest.exe" -Encoding ascii
+
+& powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-offline.ps1
+if ($LASTEXITCODE -ne 0) { throw "Offline edition build failed." }

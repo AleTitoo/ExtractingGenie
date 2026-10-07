@@ -38,3 +38,11 @@ python -m unittest discover -s tests
 ```
 
 The installer contains its own Electron and Python runtimes. The local service stops when the native application window closes. Reports remain in `%LOCALAPPDATA%\Platinum-189\library`. No report data is uploaded. The application checks for updates after startup and every 30 minutes; downloads begin only when the user chooses **Download update**. The user can install immediately with **Restart and install** or postpone it with **Later**.
+
+## Offline / Lab Edition
+
+Download the separate **Offline / Lab Edition** installer from the website or GitHub release. It processes PDFs and exports Excel locally, has no online updater, and blocks external requests in its desktop window. Its loopback service is still required for the app interface.
+
+Installation: `%LOCALAPPDATA%\Programs\Platinum-189 Offline`; data: `%LOCALAPPDATA%\Platinum-189 Offline`. It creates separate Offline shortcuts and uninstall registration, performs no legacy migration, and leaves the standard edition installed. Import copies of your exported PDFs into the offline library. Close the app and run a newer offline installer for manual updates; the library is preserved. Administrator/institutional approval is still required where applicable.
+
+Both editions are built by `scripts/build.ps1`; `scripts/build-offline.ps1` packages the lab edition separately. The offline identity is bundled in both the native shell and backend, rather than an editable UI preference.

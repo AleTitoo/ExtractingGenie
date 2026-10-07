@@ -16,6 +16,9 @@ if getattr(sys, 'frozen', False):
     default_data = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'Platinum-189'
 else:
     default_data = Path(__file__).resolve().parent
+OFFLINE_EDITION = (ROOT / 'offline-edition.json').exists()
+if OFFLINE_EDITION:
+    default_data = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'Platinum-189 Offline'
 DATA_ROOT = Path(os.environ.get('GENIE_DATA_DIR', default_data))
 LIBRARY = DATA_ROOT / 'library'
 LIBRARY.mkdir(parents=True, exist_ok=True)
@@ -66,7 +69,7 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         query = parse_qs(parsed.query)
         request_token = query.get('token', [''])[0]
-        if parsed.path == '/': return self.send((ROOT/'interface.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
+        if parsed.path == '/': return self.send((ROOT/'interface.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN).replace('__OFFLINE__',str(OFFLINE_EDITION).lower()),'text/html; charset=utf-8')
         if parsed.path == '/assets/platinum-189.png':
             return self.send((ASSET_ROOT/'platinum-189.png').read_bytes(),'image/png')
         if parsed.path == '/assets/platinum-189-animated.js':
@@ -95,7 +98,9 @@ class Handler(BaseHTTPRequestHandler):
             data=json.loads(self.rfile.read(size))
             with LOCK:
                 if self.path=='/api/list': return self.send(load_library(LIBRARY))
-                if self.path=='/api/info': return self.send({'version':APP_VERSION,'library_upgrade_errors':LIBRARY_UPGRADE_ERRORS})
+                if self.path=='/api/info': return self.send({'version':APP_VERSION,'offline':OFFLINE_EDITION,'library_upgrade_errors':LIBRARY_UPGRADE_ERRORS})
+                if OFFLINE_EDITION and self.path.startswith('/api/update/'):
+                    return self.send({'error':'Offline / Lab Edition: install updates manually.'},status=403)
                 if self.path=='/api/update/check':
                     info=check_for_update()
                     if info['available'] and public_update_state()['stage'] in ('idle','error'):

@@ -13,3 +13,6 @@ library/
 *.spec.bak
 .vercel/
 work/
+
+backend-offline/
+dist-offline/
