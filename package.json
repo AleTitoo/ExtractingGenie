@@ -1,6 +1,6 @@
 {
   "name": "platinum-189",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Local, traceable extraction of weighted activities from GENIE reports",
   "main": "desktop/main.js",
   "author": "Alexandre Pereira",
@@ -28,9 +28,14 @@
     "files": [
       "desktop/main.js",
       "desktop/migration.js",
-      "package.json"
+      "package.json",
+      "desktop/updater.js"
     ],
     "extraResources": [
+      {
+        "from": "desktop/install-update.ps1",
+        "to": "install-update.ps1"
+      },
       {
         "from": "backend-dist/Platinum-189.exe",
         "to": "backend/Platinum-189.exe"

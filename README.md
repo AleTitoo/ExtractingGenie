@@ -6,9 +6,11 @@ Download website: https://platinum-189.vercel.app/
 
 Platinum-189 is a local Windows application for importing selectable-text GENIE PDFs and extracting the interference-corrected weighted mean activity table. Reports stay on the computer.
 
-Version 1.0.7 retains the approved two-shell Pt-189 icon and animation, the larger website icon, and the simplified app header. Its installer closes the existing app and private report service before replacing files. Extraction and evidence handling are unchanged.
+Version 1.0.8 restores in-app update installation and visible reopening. The native shell starts an independent Windows helper, waits for its startup acknowledgement, and only then closes the app and its private report service. The helper installs the verified update and reopens Platinum-189. If the helper cannot start, the app remains open and reports the error. The installer checksum is rechecked before handoff and installation. Saved report files and existing updated shortcuts are preserved.
 
-**Known unfinished work:** the full in-app install-and-restart sequence has not passed verification. Automatic installation is paused in this release; update checks remain available and the update button opens the download website. Close Platinum-189 and run the downloaded installer manually. The independent updater handoff and visible automatic relaunch are deferred to the next development session.
+Version 1.0.7 was a stopping-point release with automatic installation paused. Computers still running 1.0.7 need to install 1.0.8 once from the download website; subsequent updates can use **Download update**, then **Restart and install** inside the app.
+
+The approved two-shell Pt-189 icon and animation, larger website icon, and simplified app header are retained. Extraction and evidence handling are unchanged.
 
 Version 1.0.5 renamed the application to Platinum-189 in honor of the experiment that inspired it. The library migrates with byte-for-byte verification; the previous copy remains available as a backup. Compatibility downloads and a small launcher bridge keep older installations and their update paths working.
 

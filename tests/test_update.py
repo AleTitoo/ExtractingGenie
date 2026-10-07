@@ -13,16 +13,24 @@ class Response(io.BytesIO):
     def __exit__(self,*args): self.close()
 
 class UpdateTests(unittest.TestCase):
-    def test_native_update_waits_for_shell_and_relaunches_visible_executable(self):
+    def test_native_update_hands_off_only_verified_installer(self):
+        import hashlib
         with tempfile.TemporaryDirectory() as temp:
-            with patch.object(update.sys, 'frozen', True, create=True), patch.object(update.os, 'name', 'nt'), patch.object(update.tempfile, 'gettempdir', return_value=temp), patch.dict(update.os.environ, {'GENIE_DESKTOP_EXE':'C:/GENIE/Platinum-189.exe','GENIE_DESKTOP_PID':'1234'}), patch.object(update.subprocess, 'Popen') as launch:
-                update.schedule_install('C:/updates/setup.exe')
-                arguments = launch.call_args.args[0]
-                self.assertEqual(arguments[arguments.index('-DesktopProcessId') + 1], '1234')
-                self.assertEqual(arguments[arguments.index('-App') + 1], 'C:\\GENIE\\Platinum-189.exe')
-                script = (Path(temp) / 'platinum-189-update.ps1').read_text(encoding='utf-8')
-                self.assertLess(script.index('Wait-Process -Id $DesktopProcessId'), script.index('$result = Start-Process'))
-                self.assertIn('if ($result.ExitCode -eq 0)', script)
+            installer = Path(temp) / 'updates' / 'Platinum-189-Setup-9.0.0.exe'
+            installer.parent.mkdir()
+            installer.write_bytes(b'installer')
+            checksum = hashlib.sha256(b'installer').hexdigest()
+            Path(str(installer) + '.sha256').write_text(checksum)
+            with patch.object(update.sys, 'frozen', True, create=True), patch.object(update.os, 'name', 'nt'), patch.dict(update.os.environ, {'GENIE_DATA_DIR':temp,'GENIE_DESKTOP_PID':'1234'}), patch.object(update.subprocess, 'Popen') as launch:
+                update.schedule_install(installer)
+                launch.assert_not_called()
+                request = json.loads((Path(temp) / 'update-install-request.json').read_text())
+                self.assertEqual(request['desktop_pid'], 1234)
+                self.assertEqual(request['sha256'], checksum)
+                self.assertFalse((Path(temp) / 'update-install-request.tmp').exists())
+                installer.write_bytes(b'tampered')
+                with self.assertRaisesRegex(ValueError, 'changed after download'):
+                    update.schedule_install(installer)
 
     def test_version_tuple(self):
         self.assertEqual(update.version_tuple('v1.2.3'),(1,2,3))

@@ -30,6 +30,13 @@ def update_state(**changes):
         return {key:value for key,value in UPDATE_STATE.items() if key != 'installer'}
 
 def public_update_state():
+    result = DATA_ROOT / 'update-install-result.json'
+    if result.exists():
+        try:
+            outcome = json.loads(result.read_text(encoding='utf-8-sig'))
+            if outcome.get('error'): update_state(stage='error', message=outcome['error'])
+            result.unlink(missing_ok=True)
+        except (OSError, ValueError): pass
     with UPDATE_LOCK:
         return {key:value for key,value in UPDATE_STATE.items() if key != 'installer'}
 
@@ -102,7 +109,11 @@ class Handler(BaseHTTPRequestHandler):
                         threading.Thread(target=download_update,args=(info,),daemon=True).start()
                     return self.send(public_update_state())
                 if self.path=='/api/update/install':
-                    raise ValueError('Automatic installation is paused in v1.0.7. Download the installer from https://platinum-189.vercel.app/, close the app, then run it.')
+                    with UPDATE_LOCK: installer=UPDATE_STATE.get('installer')
+                    if not installer: raise ValueError('Download and verify the update first.')
+                    schedule_install(installer)
+                    update_state(stage='installing',message='Preparing to restart and install...')
+                    return self.send(public_update_state())
                 if self.path=='/api/import':
                     name=str(data['name']).replace('\\','/').split('/')[-1]
                     if not name.lower().endswith('.pdf'): raise ValueError('Select a PDF report.')

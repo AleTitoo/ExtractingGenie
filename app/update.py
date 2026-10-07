@@ -78,22 +78,23 @@ def download_verified_update(info, update_dir, opener=urllib.request.urlopen, pr
     return installer
 
 def schedule_install(installer, app_path=None):
+    """Ask the native shell to install; never spawn from the private report service."""
     if os.name != 'nt' or not getattr(sys, 'frozen', False):
         raise RuntimeError('Automatic installation is available only in the installed Windows app.')
-    script = Path(tempfile.gettempdir()) / 'platinum-189-update.ps1'
-    app_path = Path(app_path or os.environ.get('GENIE_DESKTOP_EXE') or sys.executable)
     desktop_pid = int(os.environ.get('GENIE_DESKTOP_PID', '0'))
-    script.write_text(
-        'param([int]$ProcessId,[int]$DesktopProcessId,[string]$Installer,[string]$App)\n'
-        'Wait-Process -Id $ProcessId -ErrorAction SilentlyContinue\n'
-        'if ($DesktopProcessId -gt 0) { Wait-Process -Id $DesktopProcessId -ErrorAction SilentlyContinue }\n'
-        '$result = Start-Process -FilePath $Installer -ArgumentList \'/S\' -PassThru -Wait\n'
-        'Get-ChildItem Env:GENIE_* -ErrorAction SilentlyContinue | Remove-Item\n'
-        'if ($result.ExitCode -eq 0) { Start-Process -FilePath $App }\n',
-        encoding='utf-8')
-    flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0) | getattr(subprocess, 'DETACHED_PROCESS', 0)
-    subprocess.Popen(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
-                      '-File', str(script), '-ProcessId', str(os.getpid()),
-                      '-DesktopProcessId', str(desktop_pid),
-                      '-Installer', str(installer), '-App', str(app_path)], creationflags=flags,
-                     close_fds=True)
+    if desktop_pid <= 0:
+        raise RuntimeError('Open Platinum-189 from its desktop shortcut to install an update.')
+    root = Path(os.environ['GENIE_DATA_DIR']).resolve()
+    installer = Path(installer).resolve()
+    if installer.parent != root / 'updates' or not re.fullmatch(r'Platinum-189-Setup-\d+\.\d+\.\d+\.exe', installer.name):
+        raise ValueError('Invalid update installer path.')
+    checksum = Path(str(installer) + '.sha256').read_text(encoding='utf-8').strip().split()[0].lower()
+    actual = hashlib.sha256(installer.read_bytes()).hexdigest()
+    if not re.fullmatch(r'[a-f0-9]{64}', checksum) or actual != checksum:
+        raise ValueError('Installer changed after download. Download the update again.')
+    (root / 'update-install-result.json').unlink(missing_ok=True)
+    request = root / 'update-install-request.json'
+    temporary = request.with_suffix('.tmp')
+    temporary.write_text(json.dumps({'installer': str(installer), 'sha256': checksum,
+                                    'desktop_pid': desktop_pid}), encoding='utf-8')
+    temporary.replace(request)

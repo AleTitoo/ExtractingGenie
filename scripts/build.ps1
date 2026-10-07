@@ -21,7 +21,7 @@ if ($LASTEXITCODE -ne 0) { throw 'PyInstaller build failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Compatibility launcher build failed.' }
 node --check desktop/main.js
 if ($LASTEXITCODE -ne 0) { throw 'Desktop shell syntax check failed.' }
-node --test tests/migration.test.js
+node --test tests/migration.test.js tests/updater.test.js
 if ($LASTEXITCODE -ne 0) { throw 'Library migration tests failed.' }
 $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
 node node_modules/electron-builder/cli.js --win --dir --publish never

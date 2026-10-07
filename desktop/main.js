@@ -4,10 +4,13 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { migrateLibrary } = require('./migration');
+const { launchUpdate } = require('./updater');
 
 let backend;
 let logFile;
 let mainWindow;
+let updatePoll;
+let installing = false;
 const APP_ID = 'com.aletitoo.platinum189';
 app.setAppUserModelId(APP_ID);
 app.setName('Platinum-189');
@@ -73,6 +76,28 @@ app.whenReady().then(() => {
       GENIE_PORT_FILE: portFile
     }
   });
+
+  const updateRequest = path.join(dataRoot, 'update-install-request.json');
+  updatePoll = setInterval(async () => {
+    if (installing || !fs.existsSync(updateRequest)) return;
+    installing = true;
+    try {
+      const request = JSON.parse(fs.readFileSync(updateRequest, 'utf8'));
+      fs.rmSync(updateRequest, { force: true });
+      await launchUpdate(request, {
+        dataRoot, appPath: process.execPath, desktopPid: process.pid,
+        backendPid: backend.pid, resourcesPath: process.resourcesPath
+      });
+      log('Update helper acknowledged startup. Closing app to install.');
+      app.quit();
+    } catch (error) {
+      log(`Update handoff failed: ${error.stack || error.message}`);
+      const result = path.join(dataRoot, 'update-install-result.json');
+      fs.writeFileSync(result + '.tmp', JSON.stringify({ error: 'Could not start the update. The app remains open. ' + error.message }));
+      fs.renameSync(result + '.tmp', result);
+      installing = false;
+    }
+  }, 150);
 
   let opened = false;
   const openWindow = url => {
@@ -150,6 +175,7 @@ app.whenReady().then(() => {
 
 app.on('before-quit', () => {
   app.isQuitting = true;
+  clearInterval(updatePoll);
   stopBackend();
 });
 
