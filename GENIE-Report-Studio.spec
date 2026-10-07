@@ -1,7 +1,11 @@
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 hiddenimports = collect_submodules('pdfminer') + collect_submodules('pdfplumber')
-datas = collect_data_files('pdfminer') + [('app/interface.html', '.')]
+datas = collect_data_files('pdfminer') + [
+    ('app/interface.html', '.'),
+    ('version.txt', '.'),
+    ('assets/genie-report-studio.png', 'assets'),
+]
 
 a = Analysis(
     ['app/server.py'],
@@ -28,4 +32,5 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
+    icon='assets/genie-report-studio.ico',
 )

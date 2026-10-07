@@ -7,6 +7,7 @@ from pathlib import Path
 import update
 
 class Response(io.BytesIO):
+    headers = {}
     def __enter__(self): return self
     def __exit__(self,*args): self.close()
 
@@ -24,6 +25,25 @@ class UpdateTests(unittest.TestCase):
         release['assets'].pop()
         info=update.check_for_update(lambda request,timeout=0:Response(json.dumps(release).encode()))
         self.assertFalse(info['available'])
+
+    def test_check_uses_asset_matching_release_version(self):
+        release={'tag_name':'v9.0.0','assets':[
+            {'name':'GENIE-Report-Studio-Setup-8.0.0.exe','browser_download_url':'https://example/wrong'},
+            {'name':'GENIE-Report-Studio-Setup-9.0.0.exe','browser_download_url':'https://example/right'},
+            {'name':'GENIE-Report-Studio-Setup-9.0.0.exe.sha256','browser_download_url':'https://example/hash'}]}
+        info=update.check_for_update(lambda request,timeout=0:Response(json.dumps(release).encode()))
+        self.assertEqual(info['installer_url'],'https://example/right')
+
+    def test_verified_download_reports_completion(self):
+        payload=b'installer'
+        import hashlib
+        checksum=hashlib.sha256(payload).hexdigest().encode()
+        info={'available':True,'installer_name':'setup.exe','installer_url':'https://example/app','checksum_url':'https://example/hash'}
+        progress=[]
+        def opener(request,timeout=0): return Response(checksum if request.full_url.endswith('hash') else payload)
+        with tempfile.TemporaryDirectory() as temp:
+            update.download_verified_update(info,temp,opener,progress.append)
+        self.assertEqual(progress[-1],1.0)
 
     def test_verified_download_rejects_bad_hash(self):
         info={'available':True,'installer_name':'setup.exe','installer_url':'https://example/app','checksum_url':'https://example/hash'}

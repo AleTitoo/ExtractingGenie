@@ -1,7 +1,7 @@
 """Local-only browser interface; no remote services."""
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import base64, json, os, re, secrets, sys, tempfile, threading, time, webbrowser
+import base64, ctypes, json, os, re, secrets, sys, tempfile, threading, time, webbrowser
 import subprocess
 from urllib.parse import parse_qs, urlparse
 from core import import_report, load_library, export_csv, upgrade_library
@@ -10,6 +10,7 @@ from evidence import render_png
 from update import check_for_update, download_verified_update, schedule_install
 from version import APP_VERSION
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
+ASSET_ROOT = ROOT / 'assets' if getattr(sys, 'frozen', False) else Path(__file__).resolve().parents[1] / 'assets'
 if getattr(sys, 'frozen', False):
     default_data = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'GENIE Report Studio'
 else:
@@ -20,6 +21,26 @@ LIBRARY.mkdir(parents=True, exist_ok=True)
 LIBRARY_UPGRADE_ERRORS = upgrade_library(LIBRARY)
 TOKEN = secrets.token_urlsafe(32)
 LOCK = threading.Lock()
+UPDATE_LOCK = threading.Lock()
+UPDATE_STATE = {'stage':'idle','percent':0,'version':'','message':'','installer':None}
+
+def update_state(**changes):
+    with UPDATE_LOCK:
+        UPDATE_STATE.update(changes)
+        return {key:value for key,value in UPDATE_STATE.items() if key != 'installer'}
+
+def public_update_state():
+    with UPDATE_LOCK:
+        return {key:value for key,value in UPDATE_STATE.items() if key != 'installer'}
+
+def download_update(info):
+    try:
+        update_state(stage='downloading', percent=0, version=info['latest_version'], message='Downloading update…', installer=None)
+        def progress(value): update_state(percent=round(value * 100, 1))
+        installer = download_verified_update(info, DATA_ROOT/'updates', progress=progress)
+        update_state(stage='ready', percent=100, message='Update downloaded and verified.', installer=str(installer))
+    except Exception as exc:
+        update_state(stage='error', message=str(exc), installer=None)
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args): pass
@@ -38,6 +59,8 @@ class Handler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         request_token = query.get('token', [''])[0]
         if parsed.path == '/': return self.send((ROOT/'interface.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
+        if parsed.path == '/assets/genie-report-studio.png':
+            return self.send((ASSET_ROOT/'genie-report-studio.png').read_bytes(),'image/png')
         match=re.fullmatch(r'/pdf/([a-f0-9]{64})',parsed.path)
         if match and secrets.compare_digest(request_token,TOKEN):
             path=LIBRARY/(match[1]+'.pdf')
@@ -63,13 +86,26 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 if self.path=='/api/list': return self.send(load_library(LIBRARY))
                 if self.path=='/api/info': return self.send({'version':APP_VERSION,'library_upgrade_errors':LIBRARY_UPGRADE_ERRORS})
-                if self.path=='/api/update/check': return self.send(check_for_update())
-                if self.path=='/api/update/install':
+                if self.path=='/api/update/check':
                     info=check_for_update()
-                    installer=download_verified_update(info,DATA_ROOT/'updates')
+                    if info['available'] and public_update_state()['stage'] in ('idle','error'):
+                        update_state(stage='available',version=info['latest_version'],message=f"Version {info['latest_version']} is available.")
+                    return self.send({**info,'update':public_update_state()})
+                if self.path=='/api/update/status': return self.send(public_update_state())
+                if self.path=='/api/update/download':
+                    state=public_update_state()
+                    if state['stage'] not in ('downloading','ready'):
+                        info=check_for_update()
+                        if not info['available']: raise ValueError('No update is available.')
+                        threading.Thread(target=download_update,args=(info,),daemon=True).start()
+                    return self.send(public_update_state())
+                if self.path=='/api/update/install':
+                    with UPDATE_LOCK: installer=UPDATE_STATE.get('installer')
+                    if not installer: raise ValueError('Download and verify the update first.')
                     schedule_install(installer)
+                    update_state(stage='installing',message='Restarting to install…')
                     threading.Thread(target=lambda:(time.sleep(1.5),os._exit(0)),daemon=True).start()
-                    return self.send({'status':'Installing verified update…'})
+                    return self.send(public_update_state())
                 if self.path=='/api/import':
                     name=str(data['name']).replace('\\','/').split('/')[-1]
                     if not name.lower().endswith('.pdf'): raise ValueError('Select a PDF report.')
@@ -103,6 +139,9 @@ def edge_path():
     return next((path for path in candidates if path.is_file()), None)
 
 def run_desktop(server, url):
+    if os.name == 'nt':
+        try: ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AleTitoo.GENIEReportStudio')
+        except Exception: pass
     edge = edge_path()
     if not edge:
         webbrowser.open(url)

@@ -30,7 +30,7 @@ jobs:
           prerelease: false
           generate_release_notes: true
           files: |
-            dist/GENIE-Report-Studio-Setup-1.0.2.exe
-            dist/GENIE-Report-Studio-Setup-1.0.2.exe.sha256
+            dist/GENIE-Report-Studio-Setup-[0-9]*.exe
+            dist/GENIE-Report-Studio-Setup-[0-9]*.exe.sha256
             dist/GENIE-Report-Studio-Setup-latest.exe
             dist/GENIE-Report-Studio-Setup-latest.exe.sha256
