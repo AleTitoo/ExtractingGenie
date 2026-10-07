@@ -1,10 +1,12 @@
-# GENIE Report Studio
+# Platinum-189
 
 Project repository: https://github.com/AleTitoo/ExtractingGenie
 
-GENIE Report Studio is a local Windows application for importing selectable-text GENIE PDFs and extracting the interference-corrected weighted mean activity table. Reports stay on the computer.
+Download website: https://platinum-189.vercel.app/
 
-Version 1.0.4 gives the visible application its own native Windows window, GENIE icon, and stable taskbar identity. Existing Start-menu and desktop shortcuts are migrated once and preserved on subsequent upgrades. The Python extraction service runs privately behind the window and retains the existing report-library location.
+Platinum-189 is a local Windows application for importing selectable-text GENIE PDFs and extracting the interference-corrected weighted mean activity table. Reports stay on the computer.
+
+Version 1.0.5 renames the application to Platinum-189 in honor of the experiment that inspired it. The approved icon is unchanged. The library migrates with byte-for-byte verification; the previous copy remains available as a backup. Compatibility downloads and a small launcher bridge keep older installations and their update paths working.
 
 ## Accuracy boundaries
 
@@ -27,4 +29,4 @@ Run the parser tests from the repository root:
 python -m unittest discover -s tests
 ```
 
-The installer contains its own Electron and Python runtimes. The local service stops when the native application window closes. Reports remain in `%LOCALAPPDATA%\GENIE Report Studio\library`. No report data is uploaded. The application checks for updates after startup and every 30 minutes; downloads begin only when the user chooses **Download update**. The user can install immediately with **Restart and install** or postpone it with **Later**.
+The installer contains its own Electron and Python runtimes. The local service stops when the native application window closes. Reports remain in `%LOCALAPPDATA%\Platinum-189\library`. No report data is uploaded. The application checks for updates after startup and every 30 minutes; downloads begin only when the user chooses **Download update**. The user can install immediately with **Restart and install** or postpone it with **Later**.

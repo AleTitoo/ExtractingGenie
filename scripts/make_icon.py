@@ -4,9 +4,9 @@ from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "assets" / "genie-report-studio-source.png"
-DISPLAY = ROOT / "assets" / "genie-report-studio.png"
-ICON = ROOT / "assets" / "genie-report-studio.ico"
+SOURCE = ROOT / "assets" / "platinum-189-source.png"
+DISPLAY = ROOT / "assets" / "platinum-189.png"
+ICON = ROOT / "assets" / "platinum-189.ico"
 FAVICON = ROOT / "site" / "favicon.png"
 
 

@@ -12,7 +12,7 @@ import urllib.request
 from version import APP_VERSION, GITHUB_REPOSITORY
 
 API = f'https://api.github.com/repos/{GITHUB_REPOSITORY}/releases/latest'
-USER_AGENT = 'GENIE-Report-Studio-Updater'
+USER_AGENT = 'Platinum-189-Updater'
 
 def version_tuple(value):
     match = re.fullmatch(r'v?(\d+)\.(\d+)\.(\d+)', str(value).strip())
@@ -30,7 +30,7 @@ def check_for_update(opener=urllib.request.urlopen):
     tag = release.get('tag_name', '')
     assets = {asset.get('name'): asset for asset in release.get('assets', [])}
     latest = tag.lstrip('v')
-    expected_name = f'GENIE-Report-Studio-Setup-{latest}.exe'
+    expected_name = f'Platinum-189-Setup-{latest}.exe'
     installer = assets.get(expected_name)
     checksum = assets.get((installer or {}).get('name', '') + '.sha256')
     return {
@@ -80,7 +80,7 @@ def download_verified_update(info, update_dir, opener=urllib.request.urlopen, pr
 def schedule_install(installer, app_path=None):
     if os.name != 'nt' or not getattr(sys, 'frozen', False):
         raise RuntimeError('Automatic installation is available only in the installed Windows app.')
-    script = Path(tempfile.gettempdir()) / 'genie-report-studio-update.ps1'
+    script = Path(tempfile.gettempdir()) / 'platinum-189-update.ps1'
     app_path = Path(app_path or os.environ.get('GENIE_DESKTOP_EXE') or sys.executable)
     desktop_pid = int(os.environ.get('GENIE_DESKTOP_PID', '0'))
     script.write_text(
@@ -88,6 +88,7 @@ def schedule_install(installer, app_path=None):
         'Wait-Process -Id $ProcessId -ErrorAction SilentlyContinue\n'
         'if ($DesktopProcessId -gt 0) { Wait-Process -Id $DesktopProcessId -ErrorAction SilentlyContinue }\n'
         '$result = Start-Process -FilePath $Installer -ArgumentList \'/S\' -PassThru -Wait\n'
+        'Get-ChildItem Env:GENIE_* -ErrorAction SilentlyContinue | Remove-Item\n'
         'if ($result.ExitCode -eq 0) { Start-Process -FilePath $App }\n',
         encoding='utf-8')
     flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0) | getattr(subprocess, 'DETACHED_PROCESS', 0)

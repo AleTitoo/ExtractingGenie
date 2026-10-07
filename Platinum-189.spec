@@ -4,7 +4,7 @@ hiddenimports = collect_submodules('pdfminer') + collect_submodules('pdfplumber'
 datas = collect_data_files('pdfminer') + [
     ('app/interface.html', '.'),
     ('version.txt', '.'),
-    ('assets/genie-report-studio.png', 'assets'),
+    ('assets/platinum-189.png', 'assets'),
 ]
 
 a = Analysis(
@@ -26,11 +26,11 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='GENIE-Report-Studio',
+    name='Platinum-189',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     console=False,
-    icon='assets/genie-report-studio.ico',
+    icon='assets/platinum-189.ico',
 )

@@ -15,12 +15,12 @@ class Response(io.BytesIO):
 class UpdateTests(unittest.TestCase):
     def test_native_update_waits_for_shell_and_relaunches_visible_executable(self):
         with tempfile.TemporaryDirectory() as temp:
-            with patch.object(update.sys, 'frozen', True, create=True), patch.object(update.os, 'name', 'nt'), patch.object(update.tempfile, 'gettempdir', return_value=temp), patch.dict(update.os.environ, {'GENIE_DESKTOP_EXE':'C:/GENIE/GENIE-Report-Studio.exe','GENIE_DESKTOP_PID':'1234'}), patch.object(update.subprocess, 'Popen') as launch:
+            with patch.object(update.sys, 'frozen', True, create=True), patch.object(update.os, 'name', 'nt'), patch.object(update.tempfile, 'gettempdir', return_value=temp), patch.dict(update.os.environ, {'GENIE_DESKTOP_EXE':'C:/GENIE/Platinum-189.exe','GENIE_DESKTOP_PID':'1234'}), patch.object(update.subprocess, 'Popen') as launch:
                 update.schedule_install('C:/updates/setup.exe')
                 arguments = launch.call_args.args[0]
                 self.assertEqual(arguments[arguments.index('-DesktopProcessId') + 1], '1234')
-                self.assertEqual(arguments[arguments.index('-App') + 1], 'C:\\GENIE\\GENIE-Report-Studio.exe')
-                script = (Path(temp) / 'genie-report-studio-update.ps1').read_text(encoding='utf-8')
+                self.assertEqual(arguments[arguments.index('-App') + 1], 'C:\\GENIE\\Platinum-189.exe')
+                script = (Path(temp) / 'platinum-189-update.ps1').read_text(encoding='utf-8')
                 self.assertLess(script.index('Wait-Process -Id $DesktopProcessId'), script.index('$result = Start-Process'))
                 self.assertIn('if ($result.ExitCode -eq 0)', script)
 
@@ -30,8 +30,8 @@ class UpdateTests(unittest.TestCase):
 
     def test_check_requires_installer_and_checksum(self):
         release={'tag_name':'v9.0.0','html_url':'https://example/release','assets':[
-            {'name':'GENIE-Report-Studio-Setup-9.0.0.exe','browser_download_url':'https://example/app'},
-            {'name':'GENIE-Report-Studio-Setup-9.0.0.exe.sha256','browser_download_url':'https://example/hash'}]}
+            {'name':'Platinum-189-Setup-9.0.0.exe','browser_download_url':'https://example/app'},
+            {'name':'Platinum-189-Setup-9.0.0.exe.sha256','browser_download_url':'https://example/hash'}]}
         info=update.check_for_update(lambda request,timeout=0:Response(json.dumps(release).encode()))
         self.assertTrue(info['available'])
         release['assets'].pop()
@@ -40,9 +40,9 @@ class UpdateTests(unittest.TestCase):
 
     def test_check_uses_asset_matching_release_version(self):
         release={'tag_name':'v9.0.0','assets':[
-            {'name':'GENIE-Report-Studio-Setup-8.0.0.exe','browser_download_url':'https://example/wrong'},
-            {'name':'GENIE-Report-Studio-Setup-9.0.0.exe','browser_download_url':'https://example/right'},
-            {'name':'GENIE-Report-Studio-Setup-9.0.0.exe.sha256','browser_download_url':'https://example/hash'}]}
+            {'name':'Platinum-189-Setup-8.0.0.exe','browser_download_url':'https://example/wrong'},
+            {'name':'Platinum-189-Setup-9.0.0.exe','browser_download_url':'https://example/right'},
+            {'name':'Platinum-189-Setup-9.0.0.exe.sha256','browser_download_url':'https://example/hash'}]}
         info=update.check_for_update(lambda request,timeout=0:Response(json.dumps(release).encode()))
         self.assertEqual(info['installer_url'],'https://example/right')
 

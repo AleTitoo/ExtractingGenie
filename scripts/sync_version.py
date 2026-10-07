@@ -10,7 +10,7 @@ if not re.fullmatch(r"\d+\.\d+\.\d+", version):
 
 site = ROOT / "site" / "index.html"
 text = site.read_text(encoding="utf-8")
-text = re.sub(r'GENIE Report Studio \d+\.\d+\.\d+', f'GENIE Report Studio {version}', text)
+text = re.sub(r'Platinum-189 \d+\.\d+\.\d+', f'Platinum-189 {version}', text)
 text = re.sub(r'Version \d+\.\d+\.\d+ ·', f'Version {version} ·', text)
 site.write_text(text, encoding="utf-8")
 package = ROOT / 'package.json'

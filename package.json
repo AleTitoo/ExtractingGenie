@@ -1,6 +1,6 @@
 {
-  "name": "genie-report-studio",
-  "version": "1.0.4",
+  "name": "platinum-189",
+  "version": "1.0.5",
   "description": "Local, traceable extraction of weighted activities from GENIE reports",
   "main": "desktop/main.js",
   "author": "Alexandre Pereira",
@@ -17,9 +17,9 @@
     "electron-builder": "26.15.3"
   },
   "build": {
-    "appId": "com.aletitoo.geniereportstudio",
-    "productName": "GENIE Report Studio",
-    "executableName": "GENIE-Report-Studio",
+    "appId": "com.aletitoo.platinum189",
+    "productName": "Platinum-189",
+    "executableName": "Platinum-189",
     "npmRebuild": false,
     "directories": {
       "output": "dist",
@@ -27,24 +27,25 @@
     },
     "files": [
       "desktop/main.js",
+      "desktop/migration.js",
       "package.json"
     ],
     "extraResources": [
       {
-        "from": "backend-dist/GENIE-Report-Studio.exe",
-        "to": "backend/GENIE-Report-Studio.exe"
+        "from": "backend-dist/Platinum-189.exe",
+        "to": "backend/Platinum-189.exe"
       },
       {
-        "from": "assets/genie-report-studio.ico",
-        "to": "genie-report-studio.ico"
+        "from": "assets/platinum-189.ico",
+        "to": "platinum-189.ico"
       }
     ],
     "win": {
-      "icon": "assets/genie-report-studio.ico",
+      "icon": "assets/platinum-189.ico",
       "target": [
         "nsis"
       ],
-      "artifactName": "GENIE-Report-Studio-Setup-${version}.${ext}"
+      "artifactName": "Platinum-189-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": true,
@@ -52,7 +53,7 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "GENIE Report Studio"
+      "shortcutName": "Platinum-189"
     }
   }
 }

@@ -12,7 +12,7 @@ from version import APP_VERSION
 ROOT = Path(getattr(sys, '_MEIPASS', Path(__file__).resolve().parent))
 ASSET_ROOT = ROOT / 'assets' if getattr(sys, 'frozen', False) else Path(__file__).resolve().parents[1] / 'assets'
 if getattr(sys, 'frozen', False):
-    default_data = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'GENIE Report Studio'
+    default_data = Path(os.environ.get('LOCALAPPDATA', Path.home())) / 'Platinum-189'
 else:
     default_data = Path(__file__).resolve().parent
 DATA_ROOT = Path(os.environ.get('GENIE_DATA_DIR', default_data))
@@ -59,8 +59,8 @@ class Handler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         request_token = query.get('token', [''])[0]
         if parsed.path == '/': return self.send((ROOT/'interface.html').read_text(encoding='utf-8').replace('__TOKEN__',TOKEN),'text/html; charset=utf-8')
-        if parsed.path == '/assets/genie-report-studio.png':
-            return self.send((ASSET_ROOT/'genie-report-studio.png').read_bytes(),'image/png')
+        if parsed.path == '/assets/platinum-189.png':
+            return self.send((ASSET_ROOT/'platinum-189.png').read_bytes(),'image/png')
         match=re.fullmatch(r'/pdf/([a-f0-9]{64})',parsed.path)
         if match and secrets.compare_digest(request_token,TOKEN):
             path=LIBRARY/(match[1]+'.pdf')
@@ -140,7 +140,7 @@ def edge_path():
 
 def run_desktop(server, url):
     if os.name == 'nt':
-        try: ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AleTitoo.GENIEReportStudio')
+        try: ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('AleTitoo.Platinum189')
         except Exception: pass
     edge = edge_path()
     if not edge:
@@ -169,7 +169,7 @@ if __name__=='__main__':
         print(url, flush=True)
     if os.environ.get('GENIE_EMBEDDED') != '1':
         if sys.stdout:
-            print('GENIE Report Studio\nKeep this window open. Close it or press Ctrl+C to stop.', flush=True)
+            print('Platinum-189\nKeep this window open. Close it or press Ctrl+C to stop.', flush=True)
     try:
         if os.environ.get('GENIE_EMBEDDED') == '1':
             server.serve_forever()

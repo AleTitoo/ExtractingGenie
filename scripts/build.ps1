@@ -12,10 +12,14 @@ if ($LASTEXITCODE -ne 0) { throw 'Version synchronization failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Icon generation failed.' }
 & $python -m unittest discover -s tests
 if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
-& $python -m PyInstaller --clean --noconfirm GENIE-Report-Studio.spec --distpath backend-dist
+& $python -m PyInstaller --clean --noconfirm Platinum-189.spec --distpath backend-dist
 if ($LASTEXITCODE -ne 0) { throw 'PyInstaller build failed.' }
+& $python -m PyInstaller --clean --noconfirm --onefile --windowed --name Legacy-GENIE-Launcher --icon (Join-Path $root 'assets/platinum-189.ico') app/legacy_launcher.py --distpath backend-dist --specpath build
+if ($LASTEXITCODE -ne 0) { throw 'Compatibility launcher build failed.' }
 node --check desktop/main.js
 if ($LASTEXITCODE -ne 0) { throw 'Desktop shell syntax check failed.' }
+node --test tests/migration.test.js
+if ($LASTEXITCODE -ne 0) { throw 'Library migration tests failed.' }
 $env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
 node node_modules/electron-builder/cli.js --win --dir --publish never
 if ($LASTEXITCODE -ne 0) { throw 'Native desktop packaging failed.' }
@@ -38,9 +42,14 @@ if (-not $makensis) { throw 'makensis.exe is required to build the installer.' }
 New-Item -ItemType Directory -Force -Path 'dist' | Out-Null
 & $makensis "/DAPP_VERSION=$version" installer.nsi
 if ($LASTEXITCODE -ne 0) { throw 'NSIS installer build failed.' }
-$installerName = "GENIE-Report-Studio-Setup-$version.exe"
+$installerName = "Platinum-189-Setup-$version.exe"
 $installer = Join-Path 'dist' $installerName
 $hash = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
 Set-Content -LiteralPath ($installer + '.sha256') -Value "$hash  $installerName" -Encoding ascii
+Copy-Item -LiteralPath $installer -Destination 'dist\Platinum-189-Setup-latest.exe' -Force
+Set-Content -LiteralPath 'dist\Platinum-189-Setup-latest.exe.sha256' -Value "$hash  Platinum-189-Setup-latest.exe" -Encoding ascii
+$legacyName = "GENIE-Report-Studio-Setup-$version.exe"
+Copy-Item -LiteralPath $installer -Destination (Join-Path 'dist' $legacyName) -Force
+Set-Content -LiteralPath (Join-Path 'dist' ($legacyName + '.sha256')) -Value "$hash  $legacyName" -Encoding ascii
 Copy-Item -LiteralPath $installer -Destination 'dist\GENIE-Report-Studio-Setup-latest.exe' -Force
 Set-Content -LiteralPath 'dist\GENIE-Report-Studio-Setup-latest.exe.sha256' -Value "$hash  GENIE-Report-Studio-Setup-latest.exe" -Encoding ascii
