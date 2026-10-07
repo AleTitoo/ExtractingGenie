@@ -13,7 +13,8 @@ let mainWindow;
 let updatePoll;
 let installing = false;
 const OFFLINE = fs.existsSync(path.join(process.resourcesPath, 'offline-edition.json'));
-const APP_NAME = OFFLINE ? 'Platinum-189 Offline' : 'Platinum-189';
+const APP_NAME = OFFLINE ? 'Platinum-189 Lab' : 'Platinum-189';
+const ICON_FILE = OFFLINE ? 'platinum-189-offline-v3.ico' : 'platinum-189-v2.ico';
 const APP_ID = OFFLINE ? 'com.aletitoo.platinum189.offline' : 'com.aletitoo.platinum189';
 if (OFFLINE) {
   for (const flag of ['disable-background-networking', 'disable-component-update', 'disable-domain-reliability']) app.commandLine.appendSwitch(flag);
@@ -21,7 +22,7 @@ if (OFFLINE) {
 app.setAppUserModelId(APP_ID);
 app.setName(APP_NAME);
 const dataRoot = OFFLINE
-  ? process.env.PLATINUM_OFFLINE_DATA_DIR || path.join(process.env.LOCALAPPDATA || os.homedir(), APP_NAME)
+  ? process.env.PLATINUM_OFFLINE_DATA_DIR || path.join(process.env.LOCALAPPDATA || os.homedir(), 'Platinum-189 Offline')
   : process.env.PLATINUM_DATA_DIR || process.env.GENIE_DATA_DIR || path.join(process.env.LOCALAPPDATA || os.homedir(), APP_NAME);
 app.setPath('userData', dataRoot);
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -64,7 +65,7 @@ app.whenReady().then(() => {
       if (!fs.existsSync(shortcut)) continue;
       migrated = shell.writeShortcutLink(shortcut, 'update', {
         target: process.execPath, cwd: path.dirname(process.execPath),
-        icon: path.join(process.resourcesPath, 'platinum-189-v2.ico'), iconIndex: 0,
+        icon: path.join(process.resourcesPath, ICON_FILE), iconIndex: 0,
         appUserModelId: APP_ID, description: 'Platinum-189'
       }) && migrated;
     }
@@ -114,7 +115,7 @@ app.whenReady().then(() => {
     opened = true;
     const window = new BrowserWindow({
       title: APP_NAME,
-      icon: path.join(process.resourcesPath, 'platinum-189-v2.ico'),
+      icon: path.join(process.resourcesPath, ICON_FILE),
       width: 1240,
       height: 820,
       minWidth: 900,
@@ -129,7 +130,7 @@ app.whenReady().then(() => {
       });
     }
     mainWindow = window;
-    window.setAppDetails({ appId: APP_ID, appIconPath: path.join(process.resourcesPath, 'platinum-189-v2.ico'), appIconIndex: 0, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: APP_NAME });
+    window.setAppDetails({ appId: APP_ID, appIconPath: path.join(process.resourcesPath, ICON_FILE), appIconIndex: 0, relaunchCommand: `"${process.execPath}"`, relaunchDisplayName: APP_NAME });
     window.webContents.setWindowOpenHandler(({ url }) => {
       if (!OFFLINE && url === 'https://platinum-189.vercel.app/') shell.openExternal(url);
       return { action: 'deny' };

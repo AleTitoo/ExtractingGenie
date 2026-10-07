@@ -3,15 +3,15 @@ Unicode true
   !error "APP_VERSION must be supplied by scripts/build.ps1"
 !endif
 
-Name "Platinum-189 Offline"
+Name "Platinum-189 Lab"
 OutFile "dist\Platinum-189-Offline-Setup-${APP_VERSION}.exe"
 InstallDir "$LOCALAPPDATA\Programs\Platinum-189 Offline"
 RequestExecutionLevel user
 SetCompressor zlib
-Icon "assets\platinum-189.ico"
-UninstallIcon "assets\platinum-189.ico"
+Icon "assets\platinum-189-offline.ico"
+UninstallIcon "assets\platinum-189-offline.ico"
 VIProductVersion "${APP_VERSION}.0"
-VIAddVersionKey /LANG=1033 "ProductName" "Platinum-189 Offline"
+VIAddVersionKey /LANG=1033 "ProductName" "Platinum-189 Lab"
 VIAddVersionKey /LANG=1033 "ProductVersion" "${APP_VERSION}"
 VIAddVersionKey /LANG=1033 "FileVersion" "${APP_VERSION}"
 VIAddVersionKey /LANG=1033 "CompanyName" "Alexandre Pereira"
@@ -44,30 +44,36 @@ Section "Install"
   File /r "dist-offline\win-unpacked\*.*"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateDirectory "$SMPROGRAMS\Platinum-189 Offline"
+  IfFileExists "$DESKTOP\Platinum-189 Lab.lnk" skipDesktopRename 0
+  Rename "$DESKTOP\Platinum-189 Offline.lnk" "$DESKTOP\Platinum-189 Lab.lnk"
+  skipDesktopRename:
+  IfFileExists "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Lab.lnk" skipStartRename 0
+  Rename "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Offline.lnk" "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Lab.lnk"
+  skipStartRename:
   ReadRegDWORD $0 HKCU "Software\Platinum-189 Offline" "NativeShortcutVersion"
-  IntCmp $0 2 preserveStart migrateStart preserveStart
+  IntCmp $0 3 preserveStart migrateStart preserveStart
   migrateStart:
-  CreateShortcut "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Offline.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-v2.ico" 0
+  CreateShortcut "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Lab.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-offline-v3.ico" 0
   Goto skipStartShortcut
   preserveStart:
-  IfFileExists "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Offline.lnk" skipStartShortcut 0
-  CreateShortcut "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Offline.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\Platinum-189.exe" 0
+  IfFileExists "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Lab.lnk" skipStartShortcut 0
+  CreateShortcut "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Lab.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-offline-v3.ico" 0
   skipStartShortcut:
   IfFileExists "$SMPROGRAMS\Platinum-189 Offline\Uninstall.lnk" skipUninstallShortcut 0
   CreateShortcut "$SMPROGRAMS\Platinum-189 Offline\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   skipUninstallShortcut:
-  IntCmp $0 2 preserveDesktop migrateDesktop preserveDesktop
+  IntCmp $0 3 preserveDesktop migrateDesktop preserveDesktop
   migrateDesktop:
-  IfFileExists "$DESKTOP\Platinum-189 Offline.lnk" 0 preserveDesktop
-  CreateShortcut "$DESKTOP\Platinum-189 Offline.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-v2.ico" 0
+  IfFileExists "$DESKTOP\Platinum-189 Lab.lnk" 0 preserveDesktop
+  CreateShortcut "$DESKTOP\Platinum-189 Lab.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-offline-v3.ico" 0
   Goto skipDesktopShortcut
   preserveDesktop:
-  IfFileExists "$DESKTOP\Platinum-189 Offline.lnk" skipDesktopShortcut 0
-  CreateShortcut "$DESKTOP\Platinum-189 Offline.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\Platinum-189.exe" 0
+  IfFileExists "$DESKTOP\Platinum-189 Lab.lnk" skipDesktopShortcut 0
+  CreateShortcut "$DESKTOP\Platinum-189 Lab.lnk" "$INSTDIR\Platinum-189.exe" "" "$INSTDIR\resources\platinum-189-offline-v3.ico" 0
   skipDesktopShortcut:
-  WriteRegDWORD HKCU "Software\Platinum-189 Offline" "NativeShortcutVersion" 2
+  WriteRegDWORD HKCU "Software\Platinum-189 Offline" "NativeShortcutVersion" 3
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189 Offline" "DisplayName" "Platinum-189 Offline"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189 Offline" "DisplayName" "Platinum-189 Lab"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189 Offline" "DisplayVersion" "${APP_VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189 Offline" "Publisher" "Alexandre Pereira"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189 Offline" "InstallLocation" "$INSTDIR"
@@ -80,8 +86,8 @@ Section "Install"
 SectionEnd
 
 Section "Uninstall"
-  Delete "$DESKTOP\Platinum-189 Offline.lnk"
-  Delete "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Offline.lnk"
+  Delete "$DESKTOP\Platinum-189 Lab.lnk"
+  Delete "$SMPROGRAMS\Platinum-189 Offline\Platinum-189 Lab.lnk"
   Delete "$SMPROGRAMS\Platinum-189 Offline\Uninstall.lnk"
   RMDir "$SMPROGRAMS\Platinum-189 Offline"
   Delete "$INSTDIR\Platinum-189.exe"

@@ -34,5 +34,5 @@ exe = EXE(
     strip=False,
     upx=True,
     console=False,
-    icon='assets/platinum-189.ico',
+    icon='assets/platinum-189-offline.ico',
 )

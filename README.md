@@ -46,3 +46,5 @@ Download the separate **Offline / Lab Edition** installer from the website or Gi
 Installation: `%LOCALAPPDATA%\Programs\Platinum-189 Offline`; data: `%LOCALAPPDATA%\Platinum-189 Offline`. It creates separate Offline shortcuts and uninstall registration, performs no legacy migration, and leaves the standard edition installed. Import copies of your exported PDFs into the offline library. Close the app and run a newer offline installer for manual updates; the library is preserved. Administrator/institutional approval is still required where applicable.
 
 Both editions are built by `scripts/build.ps1`; `scripts/build-offline.ps1` packages the lab edition separately. The offline identity is bundled in both the native shell and backend, rather than an editable UI preference.
+
+The lab edition shortcut is named **Platinum-189 Lab**, with a red outermost electron in its static icon. Its installation and data folders remain `Platinum-189 Offline` for update compatibility. The standard desktop icon remains blue.
