@@ -27,18 +27,32 @@ UninstPage instfiles
 
 Section "Install"
   SetOutPath "$INSTDIR"
-  File "backend-dist\GENIE-Report-Studio.exe"
+  File /r "dist\win-unpacked\*.*"
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateDirectory "$SMPROGRAMS\GENIE Report Studio"
+  ReadRegDWORD $0 HKCU "Software\GENIE Report Studio" "NativeShortcutVersion"
+  IntCmp $0 1 preserveStart migrateStart preserveStart
+  migrateStart:
+  CreateShortcut "$SMPROGRAMS\GENIE Report Studio\GENIE Report Studio.lnk" "$INSTDIR\GENIE-Report-Studio.exe" "" "$INSTDIR\resources\genie-report-studio.ico" 0
+  Goto skipStartShortcut
+  preserveStart:
   IfFileExists "$SMPROGRAMS\GENIE Report Studio\GENIE Report Studio.lnk" skipStartShortcut 0
   CreateShortcut "$SMPROGRAMS\GENIE Report Studio\GENIE Report Studio.lnk" "$INSTDIR\GENIE-Report-Studio.exe" "" "$INSTDIR\GENIE-Report-Studio.exe" 0
   skipStartShortcut:
   IfFileExists "$SMPROGRAMS\GENIE Report Studio\Uninstall.lnk" skipUninstallShortcut 0
   CreateShortcut "$SMPROGRAMS\GENIE Report Studio\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   skipUninstallShortcut:
+  IntCmp $0 1 preserveDesktop migrateDesktop preserveDesktop
+  migrateDesktop:
+  IfFileExists "$DESKTOP\GENIE Report Studio.lnk" 0 preserveDesktop
+  CreateShortcut "$DESKTOP\GENIE Report Studio.lnk" "$INSTDIR\GENIE-Report-Studio.exe" "" "$INSTDIR\resources\genie-report-studio.ico" 0
+  Goto skipDesktopShortcut
+  preserveDesktop:
   IfFileExists "$DESKTOP\GENIE Report Studio.lnk" skipDesktopShortcut 0
   CreateShortcut "$DESKTOP\GENIE Report Studio.lnk" "$INSTDIR\GENIE-Report-Studio.exe" "" "$INSTDIR\GENIE-Report-Studio.exe" 0
   skipDesktopShortcut:
+  WriteRegDWORD HKCU "Software\GENIE Report Studio" "NativeShortcutVersion" 1
+  System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GENIE Report Studio" "DisplayName" "GENIE Report Studio"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GENIE Report Studio" "DisplayVersion" "${APP_VERSION}"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GENIE Report Studio" "Publisher" "Alexandre Pereira"
@@ -56,7 +70,17 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\GENIE Report Studio\Uninstall.lnk"
   RMDir "$SMPROGRAMS\GENIE Report Studio"
   Delete "$INSTDIR\GENIE-Report-Studio.exe"
+  Delete "$INSTDIR\*.dll"
+  Delete "$INSTDIR\*.pak"
+  Delete "$INSTDIR\*.bin"
+  Delete "$INSTDIR\*.dat"
+  Delete "$INSTDIR\*.json"
+  Delete "$INSTDIR\LICENSE.electron.txt"
+  Delete "$INSTDIR\LICENSES.chromium.html"
+  RMDir /r "$INSTDIR\resources"
+  RMDir /r "$INSTDIR\locales"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\GENIE Report Studio"
+  DeleteRegKey HKCU "Software\GENIE Report Studio"
 SectionEnd

@@ -14,6 +14,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Icon generation failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
 & $python -m PyInstaller --clean --noconfirm GENIE-Report-Studio.spec --distpath backend-dist
 if ($LASTEXITCODE -ne 0) { throw 'PyInstaller build failed.' }
+node --check desktop/main.js
+if ($LASTEXITCODE -ne 0) { throw 'Desktop shell syntax check failed.' }
+$env:CSC_IDENTITY_AUTO_DISCOVERY = 'false'
+node node_modules/electron-builder/cli.js --win --dir --publish never
+if ($LASTEXITCODE -ne 0) { throw 'Native desktop packaging failed.' }
 $makensis = (Get-Command makensis.exe -ErrorAction SilentlyContinue).Source
 if (-not $makensis) {
     $candidates = @()

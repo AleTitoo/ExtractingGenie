@@ -4,7 +4,7 @@ Project repository: https://github.com/AleTitoo/ExtractingGenie
 
 GENIE Report Studio is a local Windows application for importing selectable-text GENIE PDFs and extracting the interference-corrected weighted mean activity table. Reports stay on the computer.
 
-Version 1.0.3 adds the approved application icon and a streamlined one-click installer and updater. Updates download with visible progress, are verified with SHA-256, preserve existing shortcuts, and relaunch the application after installation.
+Version 1.0.4 gives the visible application its own native Windows window, GENIE icon, and stable taskbar identity. Existing Start-menu and desktop shortcuts are migrated once and preserved on subsequent upgrades. The Python extraction service runs privately behind the window and retains the existing report-library location.
 
 ## Accuracy boundaries
 
@@ -27,4 +27,4 @@ Run the parser tests from the repository root:
 python -m unittest discover -s tests
 ```
 
-The installer contains its own runtime. It opens a dedicated local application window through Microsoft Edge, which is included with Windows 10 and 11. The local service stops when that window closes. No report data is uploaded. The application checks for updates after startup and every 30 minutes; downloads begin only when the user chooses **Download update**. The user can install immediately with **Restart and install** or postpone it with **Later**.
+The installer contains its own Electron and Python runtimes. The local service stops when the native application window closes. Reports remain in `%LOCALAPPDATA%\GENIE Report Studio\library`. No report data is uploaded. The application checks for updates after startup and every 30 minutes; downloads begin only when the user chooses **Download update**. The user can install immediately with **Restart and install** or postpone it with **Later**.

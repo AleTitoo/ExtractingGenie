@@ -81,15 +81,18 @@ def schedule_install(installer, app_path=None):
     if os.name != 'nt' or not getattr(sys, 'frozen', False):
         raise RuntimeError('Automatic installation is available only in the installed Windows app.')
     script = Path(tempfile.gettempdir()) / 'genie-report-studio-update.ps1'
-    app_path = Path(app_path or sys.executable)
+    app_path = Path(app_path or os.environ.get('GENIE_DESKTOP_EXE') or sys.executable)
+    desktop_pid = int(os.environ.get('GENIE_DESKTOP_PID', '0'))
     script.write_text(
-        'param([int]$ProcessId,[string]$Installer,[string]$App)\n'
+        'param([int]$ProcessId,[int]$DesktopProcessId,[string]$Installer,[string]$App)\n'
         'Wait-Process -Id $ProcessId -ErrorAction SilentlyContinue\n'
+        'if ($DesktopProcessId -gt 0) { Wait-Process -Id $DesktopProcessId -ErrorAction SilentlyContinue }\n'
         '$result = Start-Process -FilePath $Installer -ArgumentList \'/S\' -PassThru -Wait\n'
         'if ($result.ExitCode -eq 0) { Start-Process -FilePath $App }\n',
         encoding='utf-8')
     flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0) | getattr(subprocess, 'DETACHED_PROCESS', 0)
     subprocess.Popen(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass',
                       '-File', str(script), '-ProcessId', str(os.getpid()),
+                      '-DesktopProcessId', str(desktop_pid),
                       '-Installer', str(installer), '-App', str(app_path)], creationflags=flags,
                      close_fds=True)

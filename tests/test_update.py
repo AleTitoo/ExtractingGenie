@@ -2,6 +2,7 @@ import io
 import json
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 import update
@@ -12,6 +13,17 @@ class Response(io.BytesIO):
     def __exit__(self,*args): self.close()
 
 class UpdateTests(unittest.TestCase):
+    def test_native_update_waits_for_shell_and_relaunches_visible_executable(self):
+        with tempfile.TemporaryDirectory() as temp:
+            with patch.object(update.sys, 'frozen', True, create=True), patch.object(update.os, 'name', 'nt'), patch.object(update.tempfile, 'gettempdir', return_value=temp), patch.dict(update.os.environ, {'GENIE_DESKTOP_EXE':'C:/GENIE/GENIE-Report-Studio.exe','GENIE_DESKTOP_PID':'1234'}), patch.object(update.subprocess, 'Popen') as launch:
+                update.schedule_install('C:/updates/setup.exe')
+                arguments = launch.call_args.args[0]
+                self.assertEqual(arguments[arguments.index('-DesktopProcessId') + 1], '1234')
+                self.assertEqual(arguments[arguments.index('-App') + 1], 'C:\\GENIE\\GENIE-Report-Studio.exe')
+                script = (Path(temp) / 'genie-report-studio-update.ps1').read_text(encoding='utf-8')
+                self.assertLess(script.index('Wait-Process -Id $DesktopProcessId'), script.index('$result = Start-Process'))
+                self.assertIn('if ($result.ExitCode -eq 0)', script)
+
     def test_version_tuple(self):
         self.assertEqual(update.version_tuple('v1.2.3'),(1,2,3))
         with self.assertRaises(ValueError): update.version_tuple('latest')

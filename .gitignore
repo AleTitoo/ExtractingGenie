@@ -6,8 +6,6 @@ backend-dist/
 build/
 dist/
 node_modules/
-desktop/
-package.json
 pnpm-lock.yaml
 pnpm-workspace.yaml
 package-lock.json
