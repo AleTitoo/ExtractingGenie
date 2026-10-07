@@ -7,7 +7,7 @@ Name "Platinum-189"
 OutFile "dist\Platinum-189-Setup-${APP_VERSION}.exe"
 InstallDir "$LOCALAPPDATA\Programs\Platinum-189"
 RequestExecutionLevel user
-SetCompressor /SOLID lzma
+SetCompressor zlib
 Icon "assets\platinum-189.ico"
 UninstallIcon "assets\platinum-189.ico"
 VIProductVersion "${APP_VERSION}.0"
@@ -27,6 +27,9 @@ UninstPage instfiles
 
 Section "Install"
   SetOutPath "$INSTDIR"
+  FileOpen $1 "$INSTDIR\.installing" w
+  FileWrite $1 "Installation in progress"
+  FileClose $1
   File /r "dist\win-unpacked\*.*"
   ; Older updater helpers relaunch this historical path after installation.
   IfFileExists "$LOCALAPPDATA\Programs\GENIE Report Studio\GENIE-Report-Studio.exe" 0 skipLegacyBridge
@@ -77,6 +80,7 @@ Section "Install"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189" "QuietUninstallString" '"$INSTDIR\Uninstall.exe" /S'
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189" "NoModify" 1
   WriteRegDWORD HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\Platinum-189" "NoRepair" 1
+  Delete "$INSTDIR\.installing"
 SectionEnd
 
 Section "Uninstall"
