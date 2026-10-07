@@ -1,14 +1,14 @@
-## Platinum-189 v1.0.8
+## Platinum-189 v1.0.9
 
-Automatic installation and reopening are restored. Choose **Download update**, then **Restart and install**. The app closes only after its independent Windows update helper confirms startup; the helper installs the update and reopens a visible app window. If helper startup fails, the app stays open and reports the error.
+Adds the approved native Excel export. Choose **Export Excel (.xlsx)** to save the selected reports and current confidence filter as a formatted workbook.
 
-- Rechecks installer SHA-256 before installation.
-- Preserves saved reports and existing updated shortcuts.
-- Keeps the approved icon, animation, and simplified header.
-- Leaves PDF extraction and source evidence unchanged.
+- Results sheet with readable widths, numeric activities and uncertainties, scientific notation, filters, frozen headers, and an editable uncertainty-review threshold.
+- Source records preserve exact original values, timestamps, flags, source pages and hashes, including records excluded by the confidence filter.
+- Energy lines retain line-by-line activities and GENIE use/exclusion decisions.
+- Rejected or missing measurements remain blank. Mixed activity units require separate exports.
+- Existing lab-layout CSV, detailed CSV, approved branding and automatic installation/reopening remain available.
 
-### Upgrading from v1.0.7
-Automatic installation was paused in v1.0.7. Install v1.0.8 once using the downloadable installer. Future updates can install and reopen from inside the app.
+PDF extraction is unchanged. Filling an uploaded Excel template remains a proposed future feature.
 
 ### Validation
-25 Python tests and 5 desktop tests passed. The packaged Windows app was checked for failed-helper recovery, real installation, visible reopening, report-file integrity, and shortcut preservation.
+29 Python tests and 5 desktop tests passed. The native export was checked with both archived E2 reports, including source-value preservation, filtering, dates, formula safety, and the workbook download endpoint.

@@ -6,6 +6,7 @@ import subprocess
 from urllib.parse import parse_qs, urlparse
 from core import import_report, load_library, export_csv, upgrade_library
 from lab_export import export_lab_csv
+from excel_export import export_xlsx
 from evidence import render_png
 from update import check_for_update, download_verified_update, schedule_install
 from version import APP_VERSION
@@ -123,10 +124,14 @@ class Handler(BaseHTTPRequestHandler):
                         path.write_bytes(raw)
                         report,new=import_report(path,LIBRARY)
                     return self.send({'report':report,'added':new})
-                if self.path in ('/api/export','/api/export-lab'):
+                if self.path in ('/api/export','/api/export-lab','/api/export-excel'):
                     reports=[r for r in load_library(LIBRARY) if r['sha256'] in set(data['ids'])]
                     if not reports: raise ValueError('Select at least one report.')
                     with tempfile.TemporaryDirectory() as temp:
+                        if self.path=='/api/export-excel':
+                            target=Path(temp)/'results.xlsx'
+                            export_xlsx(reports,target,str(data['threshold']),bool(data['all']),str(data.get('uncertainty_threshold','10')))
+                            return self.send(target.read_bytes(),'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
                         target=Path(temp)/'results.csv'
                         if self.path=='/api/export-lab':
                             export_lab_csv(reports,target,str(data['threshold']),bool(data['all']),str(data.get('uncertainty_threshold','10')))

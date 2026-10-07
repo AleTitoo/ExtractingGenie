@@ -6,9 +6,11 @@ Download website: https://platinum-189.vercel.app/
 
 Platinum-189 is a local Windows application for importing selectable-text GENIE PDFs and extracting the interference-corrected weighted mean activity table. Reports stay on the computer.
 
+Version 1.0.9 adds **Export Excel (.xlsx)** with the approved Results, Source records, and Energy lines sheets. It uses the current report selection and confidence filter, preserves exact original values in Source records, and includes fitted widths, native dates, filters, frozen headers, scientific notation, and an editable uncertainty-review threshold. Rejected or missing activities stay blank. Mixed-unit reports must be exported separately. Both CSV exports remain available.
+
 Version 1.0.8 restores in-app update installation and visible reopening. The native shell starts an independent Windows helper, waits for its startup acknowledgement, and only then closes the app and its private report service. The helper installs the verified update and reopens Platinum-189. If the helper cannot start, the app remains open and reports the error. The installer checksum is rechecked before handoff and installation. Saved report files and existing updated shortcuts are preserved.
 
-Version 1.0.7 was a stopping-point release with automatic installation paused. Computers still running 1.0.7 need to install 1.0.8 once from the download website; subsequent updates can use **Download update**, then **Restart and install** inside the app.
+Version 1.0.7 was a stopping-point release with automatic installation paused. Computers still running 1.0.7 need to install 1.0.8 or newer once from the download website; subsequent updates can use **Download update**, then **Restart and install** inside the app.
 
 The approved two-shell Pt-189 icon and animation, larger website icon, and simplified app header are retained. Extraction and evidence handling are unchanged.
 

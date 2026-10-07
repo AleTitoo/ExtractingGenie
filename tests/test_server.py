@@ -2,8 +2,28 @@ import unittest, threading, json, urllib.request, urllib.error, tempfile
 from pathlib import Path
 import server
 from unittest.mock import patch
+from io import BytesIO
+from openpyxl import load_workbook
+from test_excel_export import fixture
 
 class ServerTests(unittest.TestCase):
+    def test_excel_export_returns_native_workbook_for_selected_reports(self):
+        service=server.make_server()
+        threading.Thread(target=service.serve_forever,daemon=True).start()
+        report=fixture()
+        try:
+            with patch.object(server,'load_library',return_value=[report]):
+                request=urllib.request.Request(f'http://127.0.0.1:{service.server_port}/api/export-excel',
+                    data=json.dumps({'ids':[report['sha256']],'threshold':'0.7','all':False}).encode(),
+                    headers={'X-Library-Token':server.TOKEN,'Content-Type':'application/json'})
+                with urllib.request.urlopen(request,timeout=5) as response:
+                    self.assertEqual(response.headers['Content-Type'],'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                    book=load_workbook(BytesIO(response.read()))
+                    self.assertEqual(book['Results']['C8'].value,2002.2751)
+                    book.close()
+        finally:
+            service.shutdown();service.server_close()
+
     def test_library_export_and_auth(self):
         service=server.make_server()
         thread=threading.Thread(target=service.serve_forever,daemon=True)
